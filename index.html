@@ -118,6 +118,16 @@
             <h3 id="modal-task-title" class="text-xl font-black mb-2 text-yellow-500 uppercase"></h3>
             <p id="modal-task-desc" class="text-gray-400 text-sm mb-8 leading-relaxed"></p>
             <button id="modal-start-btn" class="w-full bg-white text-black font-black py-4 rounded-2xl mb-3">ابدأ المهمة</button>
+            
+            <div id="proof-upload-section" class="mb-4 hidden">
+                <p class="text-yellow-500 text-xs mb-2 font-bold text-right">أرفق صورة تثبت إتمام المهمة:</p>
+                <input type="file" id="task-proof-input" accept="image/*" class="hidden">
+                <label for="task-proof-input" class="cursor-pointer bg-gray-800 border border-dashed border-gray-600 p-4 rounded-xl block hover:border-yellow-500 transition">
+                    <i class="fas fa-cloud-upload-alt text-2xl mb-2 text-gray-400"></i>
+                    <p id="file-name-display" class="text-[10px] text-gray-500">اضغط لرفع الصورة</p>
+                </label>
+            </div>
+
             <button id="modal-confirm-btn" class="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl">تأكيد الإتمام</button>
             <button onclick="document.getElementById('task-detail-modal').classList.add('hidden')" class="mt-4 text-gray-600 text-xs text-right">إغلاق</button>
         </div>
@@ -220,6 +230,20 @@
             document.getElementById('popup-text').innerText = text;
             el.classList.add('show');
             setTimeout(() => el.classList.remove('show'), 4000);
+        };
+
+        // دالة عرض الإثبات الاحترافية
+        window.showProofModal = (imgData) => {
+            const viewer = document.createElement('div');
+            viewer.id = "img-viewer-overlay";
+            viewer.style = "position:fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;";
+            viewer.innerHTML = `
+                <div class="max-w-full max-h-full relative text-center">
+                    <img src="${imgData}" style="max-width: 90vw; max-height: 80vh; border-radius: 15px; border: 2px solid #eab308; object-fit: contain;">
+                    <button onclick="document.getElementById('img-viewer-overlay').remove()" class="mt-6 w-full bg-yellow-500 text-black font-bold py-3 rounded-xl">إغلاق المعاينة</button>
+                </div>
+            `;
+            document.body.appendChild(viewer);
         };
 
         window.modPoints = async (id, val) => await updateDoc(doc(db, "users", id), { points: increment(val) });
@@ -326,7 +350,10 @@
                 snap.forEach(d => {
                     const p = d.data();
                     list.innerHTML += `<div class="bg-black/60 p-3 rounded-xl border border-orange-500/30 mb-2 flex justify-between items-center text-[10px] text-right">
-                        <div class="text-right"><p>${p.userName} -> ${p.taskTitle}</p></div>
+                        <div class="text-right">
+                            <p>${p.userName} -> ${p.taskTitle}</p>
+                            ${p.proof ? `<button onclick="window.showProofModal('${p.proof}')" class="text-blue-400 underline italic">عرض الإثبات 🖼️</button>` : ''}
+                        </div>
                         <div class="flex gap-1"><button onclick="window.approveTask('${d.id}','${p.userId}',${p.reward},'${p.taskTitle}')" class="bg-green-600 px-2 py-1 rounded">قبول</button>
                         <button onclick="window.rejectTask('${d.id}')" class="bg-red-600 px-2 py-1 rounded">رفض</button></div></div>`;
                 });
@@ -338,31 +365,22 @@
         }
 
         async function listenToTasks(uid) {
-            // الاستماع لتغييرات المهام والمهام المكتملة معاً
             onSnapshot(collection(db, "tasks"), async (taskSnap) => {
                 const doneQ = query(collection(db, "completed_tasks"), where("userId", "==", uid));
                 const doneSnap = await getDocs(doneQ);
-                
                 const hiddenTasks = {};
                 const now = Date.now();
-                
                 doneSnap.forEach(doc => {
                     const data = doc.data();
                     if (data.doneAt) {
                         const timeDiff = now - data.doneAt.toMillis();
-                        // إذا مر أقل من 24 ساعة (24 * 60 * 60 * 1000 ميلي ثانية)
-                        if (timeDiff < 86400000) {
-                            hiddenTasks[data.taskId] = true;
-                        }
+                        if (timeDiff < 86400000) hiddenTasks[data.taskId] = true;
                     }
                 });
-
                 const container = document.getElementById('tasks-list');
                 container.innerHTML = "";
-                
                 taskSnap.forEach(tDoc => {
-                    if (hiddenTasks[tDoc.id]) return; // إخفاء المهمة إذا اكتملت مؤخراً
-
+                    if (hiddenTasks[tDoc.id]) return;
                     const t = tDoc.data();
                     const div = document.createElement('div');
                     div.className = "bg-gray-900 border border-gray-800 p-5 rounded-[2rem] flex items-center justify-between cursor-pointer hover:border-yellow-500 transition mb-3 text-right";
@@ -373,6 +391,9 @@
                         currentActiveTask = { ...t, id: tDoc.id }; 
                         document.getElementById('modal-task-title').innerText = t.title; 
                         document.getElementById('modal-task-desc').innerText = t.description || "أكمل العرض للحصول على النقاط"; 
+                        document.getElementById('proof-upload-section').classList.remove('hidden');
+                        document.getElementById('file-name-display').innerText = "اضغط لرفع الصورة";
+                        document.getElementById('task-proof-input').value = "";
                         document.getElementById('task-detail-modal').classList.remove('hidden'); 
                     };
                     container.appendChild(div);
@@ -426,6 +447,37 @@
             }});
         }
 
+        // دالة ضغط وتحويل الصورة لـ Base64 لضمان قبولها في Firestore
+        function compressAndGetBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxSide = 800; // تصغير العرض أو الطول لـ 800px كحد أقصى
+                        if (width > height) { if (width > maxSide) { height *= maxSide / width; width = maxSide; } }
+                        else { if (height > maxSide) { width *= maxSide / height; height = maxSide; } }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6)); // جودة 60% لتقليل الحجم جداً
+                    };
+                };
+                reader.onerror = e => reject(e);
+            });
+        }
+
+        document.getElementById('task-proof-input').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) document.getElementById('file-name-display').innerText = "تم اختيار: " + file.name;
+        };
+
         const autoCloseSidebar = () => document.getElementById('sidebar').style.transform = "translateX(100%)";
         document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
         document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => location.reload());
@@ -446,7 +498,7 @@
             const myId = auth.currentUser.uid;
             const myRef = doc(db, "users", myId);
             const mySnap = await getDoc(myRef);
-            if (code === mySnap.data().referralCode || mySnap.data().referralStepCompleted) return alert("خطأ في الكود");
+            if (code === mySnap.data().referralCode || mySnap.data().referralStepCompleted) return alert("خطأ");
             const q = query(collection(db, "users"), where("referralCode", "==", code));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
@@ -457,47 +509,37 @@
             }
         };
 
-        // زر "ابدأ المهمة"
         document.getElementById('modal-start-btn').onclick = () => {
-            if (currentActiveTask && currentActiveTask.url) {
-                window.open(currentActiveTask.url, '_blank');
-            }
+            if (currentActiveTask && currentActiveTask.url) window.open(currentActiveTask.url, '_blank');
         };
 
-        // زر "تأكيد الإتمام" - المنطق الجديد للإخفاء لمدة 24 ساعة
         document.getElementById('modal-confirm-btn').onclick = async () => {
             if (currentActiveTask) {
+                const fileInput = document.getElementById('task-proof-input');
+                if (fileInput.files.length === 0) return alert("يرجى إرفاق صورة الإثبات أولاً!");
+
                 try {
                     const uid = auth.currentUser.uid;
-                    // 1. إرسال الطلب للأدمن للمراجعة
+                    window.showTopNotif("جاري معالجة الصورة وإرسالها...");
+                    const compressedProof = await compressAndGetBase64(fileInput.files[0]);
+
                     await addDoc(collection(db, "pending_tasks"), {
                         userId: uid,
                         userName: auth.currentUser.displayName,
                         taskId: currentActiveTask.id,
                         taskTitle: currentActiveTask.title,
                         reward: currentActiveTask.reward,
+                        proof: compressedProof,
                         createdAt: serverTimestamp()
                     });
 
-                    // 2. تسجيل وقت الإتمام لإخفاء المهمة من واجهة المستخدم
-                    // نستخدم معرف فريد (دمج uid و taskId) لضمان تحديث السجل لنفس المستخدم والمهمة
                     const completedRef = doc(db, "completed_tasks", uid + "_" + currentActiveTask.id);
-                    await setDoc(completedRef, {
-                        userId: uid,
-                        taskId: currentActiveTask.id,
-                        doneAt: serverTimestamp()
-                    });
+                    await setDoc(completedRef, { userId: uid, taskId: currentActiveTask.id, doneAt: serverTimestamp() });
 
-                    window.showTopNotif("تم الإرسال للأدمن. ستختفي المهمة وتعود بعد 24 ساعة.");
+                    window.showTopNotif("تم الإرسال للأدمن بنجاح.");
                     document.getElementById('task-detail-modal').classList.add('hidden');
-                    
-                    // تحديث القائمة فوراً
                     listenToTasks(uid);
-
-                } catch (e) {
-                    console.error(e);
-                    alert("حدث خطأ.");
-                }
+                } catch (e) { console.error(e); alert("خطأ أثناء معالجة الصورة. تأكد أنها بصيغة صالحة."); }
             }
         };
 
@@ -506,13 +548,10 @@
             const desc = document.getElementById('new-task-desc').value;
             const url = document.getElementById('new-task-url').value;
             const reward = parseInt(document.getElementById('new-task-points').value);
-            
             if (title && url && !isNaN(reward)) {
                 try {
-                    await addDoc(collection(db, "tasks"), { 
-                        title, description: desc, url, reward, createdAt: serverTimestamp() 
-                    });
-                    window.showTopNotif("تم نشر المهمة الجديدة!");
+                    await addDoc(collection(db, "tasks"), { title, description: desc, url, reward, createdAt: serverTimestamp() });
+                    window.showTopNotif("تم النشر!");
                     document.getElementById('new-task-title').value = "";
                     document.getElementById('new-task-desc').value = "";
                     document.getElementById('new-task-url').value = "";
