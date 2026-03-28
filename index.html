@@ -133,6 +133,39 @@
         </div>
     </div>
 
+    <div id="user-profile-modal" class="hidden fixed inset-0 z-[160] flex items-center justify-center p-4 profile-overlay text-center">
+        <div class="bg-gray-950 border border-gray-800 w-full max-w-sm rounded-[3rem] p-8 relative shadow-2xl">
+            <button onclick="document.getElementById('user-profile-modal').classList.add('hidden')" class="absolute top-6 left-6 text-gray-500 text-xl"><i class="fas fa-times"></i></button>
+            <div class="relative w-28 h-28 mx-auto mb-6">
+                <img id="modal-profile-img" src="" class="w-full h-full rounded-3xl border-4 border-yellow-500 object-cover shadow-2xl">
+                <label for="change-photo-input" class="absolute -bottom-2 -right-2 w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center text-black cursor-pointer border-4 border-gray-950 hover:scale-110 transition">
+                    <i class="fas fa-camera text-sm"></i>
+                </label>
+                <input type="file" id="change-photo-input" accept="image/*" class="hidden">
+            </div>
+            <h3 id="modal-user-name" class="text-xl font-black text-white mb-1">...</h3>
+            <p id="modal-user-email" class="text-gray-500 text-xs mb-8 italic">...</p>
+            
+            <div class="bg-gray-900/50 rounded-2xl p-4 border border-gray-800 mb-6">
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest mb-1 text-right">رصيدك الحالي</p>
+                <div class="flex items-center justify-center gap-2">
+                    <span id="modal-user-points" class="text-2xl font-black text-yellow-500">0</span>
+                    <i class="fas fa-gem text-yellow-500 text-sm"></i>
+                </div>
+            </div>
+            <button onclick="document.getElementById('user-profile-modal').classList.add('hidden')" class="w-full py-4 bg-gray-800 text-white rounded-2xl font-bold text-sm">إغلاق</button>
+        </div>
+    </div>
+
+    <div id="static-pages-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4 profile-overlay">
+        <div class="bg-gray-950 border border-gray-800 w-full max-w-xl rounded-[2.5rem] p-8 relative max-h-[85vh] overflow-y-auto">
+            <button onclick="document.getElementById('static-pages-modal').classList.add('hidden')" class="absolute top-6 left-6 text-gray-500 text-xl"><i class="fas fa-times"></i></button>
+            <h2 id="static-title" class="text-2xl font-black text-yellow-500 mb-6 text-right italic underline uppercase"></h2>
+            <div id="static-content" class="text-gray-300 leading-relaxed text-right text-sm space-y-4 font-medium">
+                </div>
+        </div>
+    </div>
+
     <div id="sidebar" class="sidebar fixed top-0 right-0 h-full w-80 bg-gray-950 border-l border-gray-800 shadow-2xl transform translate-x-full p-8 text-center overflow-y-auto">
         <h3 class="text-2xl font-black text-yellow-500 mb-10 italic underline">GEMS PRO MENU</h3>
         <div id="open-withdraw-btn" class="bg-gray-900 p-5 rounded-3xl border border-gray-800 mb-6 flex items-center gap-4 cursor-pointer">
@@ -143,6 +176,14 @@
             <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white"><i class="fas fa-users"></i></div>
             <div><h4 class="font-bold text-sm text-white text-right">نظام الإحالة</h4></div>
         </div>
+
+        <div class="mt-4 space-y-1 border-t border-gray-800 pt-4 text-right">
+            <button onclick="window.showStaticPage('privacy')" class="block w-full text-right text-gray-500 hover:text-yellow-500 text-[11px] py-2 transition"><i class="fas fa-user-shield ml-2"></i> سياسة الخصوصية</button>
+            <button onclick="window.showStaticPage('terms')" class="block w-full text-right text-gray-500 hover:text-yellow-500 text-[11px] py-2 transition"><i class="fas fa-file-contract ml-2"></i> شروط الخدمة</button>
+            <button onclick="window.showStaticPage('about')" class="block w-full text-right text-gray-500 hover:text-yellow-500 text-[11px] py-2 transition"><i class="fas fa-info-circle ml-2"></i> من نحن</button>
+            <button onclick="window.showStaticPage('contact')" class="block w-full text-right text-gray-500 hover:text-yellow-500 text-[11px] py-2 transition"><i class="fas fa-envelope ml-2"></i> اتصل بنا</button>
+        </div>
+
         <div class="mt-8 text-right border-t border-gray-800 pt-6">
             <h4 class="text-yellow-500 font-black text-xs mb-4 uppercase tracking-widest text-right"><i class="fas fa-history ml-2"></i>سجل السحب</h4>
             <div id="user-withdraw-history" class="space-y-3">
@@ -246,6 +287,37 @@
             document.body.appendChild(viewer);
         };
 
+        // دالة عرض الصفحات القانونية المضافة
+        window.showStaticPage = (type) => {
+            const modal = document.getElementById('static-pages-modal');
+            const title = document.getElementById('static-title');
+            const content = document.getElementById('static-content');
+            
+            const pages = {
+                privacy: {
+                    title: "Privacy Policy",
+                    text: "نحن في Gems Pro نحترم خصوصيتك. البيانات التي نجمعها (مثل الإيميل وصور الإثبات) تُستخدم فقط لغرض التحقق من إتمام المهام ومنح النقاط. لا يتم مشاركة بياناتك مع أي طرف ثالث، ويتم تشفير الصور المرفوعة لضمان أمان معلوماتك."
+                },
+                terms: {
+                    title: "Terms of Service",
+                    text: "باستخدامك لموقعنا، فإنك توافق على الالتزام بالقوانين. يُمنع منعاً باتاً الغش أو استخدام الحسابات الوهمية أو برامج الأتمتة. أي محاولة تلاعب بالنقاط ستؤدي إلى حظر حسابك نهائياً وحرمانك من السحوبات المعلقة."
+                },
+                about: {
+                    title: "About Us",
+                    text: "Gems Pro هو نظام رائد في تقديم مكافآت الألعاب. نهدف إلى خلق بيئة تفاعلية تتيح للاعبين جمع الجواهر والرصيد عبر إتمام مهام بسيطة وموثوقة. نحن نؤمن بالشفافية والعدل في توزيع المكافآت."
+                },
+                contact: {
+                    title: "Contact Us",
+                    text: "إذا واجهت أي مشكلة أو كان لديك استفسار قانوني، يمكنك التواصل معنا مباشرة عبر البريد الإلكتروني: abdonacir22@gmail.com أو عبر الانضمام إلى مجتمعنا في وسائل التواصل الاجتماعي."
+                }
+            };
+
+            title.innerText = pages[type].title;
+            content.innerText = pages[type].text;
+            modal.classList.remove('hidden');
+            autoCloseSidebar();
+        };
+
         window.modPoints = async (id, val) => await updateDoc(doc(db, "users", id), { points: increment(val) });
         window.deleteTask = async (id) => { if(confirm("حذف المهمة؟")) await deleteDoc(doc(db, "tasks", id)); };
         
@@ -304,13 +376,22 @@
             let userSnap = await getDoc(userRef);
             if (!userSnap.exists()) {
                 const newCode = (user.displayName ? user.displayName.substring(0,3).toUpperCase() : "GEM") + Math.floor(1000 + Math.random() * 9000);
-                await setDoc(userRef, { name: user.displayName, email: user.email, points: 0, referralCode: newCode, referralStepCompleted: false, createdAt: serverTimestamp() });
+                await setDoc(userRef, { name: user.displayName, email: user.email, points: 0, referralCode: newCode, referralStepCompleted: false, photo: user.photoURL, createdAt: serverTimestamp() });
                 userSnap = await getDoc(userRef);
             }
             const userData = userSnap.data();
             document.getElementById('login-page').classList.add('hidden'); 
             document.getElementById('dashboard-page').classList.remove('hidden');
-            document.getElementById('user-display-photo').src = user.photoURL;
+            
+            // تحديث الصور في الواجهة
+            const currentPhoto = userData.photo || user.photoURL;
+            document.getElementById('user-display-photo').src = currentPhoto;
+            document.getElementById('modal-profile-img').src = currentPhoto;
+            
+            // تحديث نصوص المودال
+            document.getElementById('modal-user-name').innerText = userData.name || user.displayName;
+            document.getElementById('modal-user-email').innerText = userData.email || user.email;
+            
             document.getElementById('my-referral-code-display').innerText = userData.referralCode;
             
             if (user.email === ADMIN_EMAIL) {
@@ -442,13 +523,19 @@
 
         function listenToUserData(uid) {
             onSnapshot(doc(db, "users", uid), (d) => { if (d.exists()) {
-                document.getElementById('points-count').innerText = d.data().points;
-                if (d.data().referralStepCompleted) document.getElementById('referral-input-container').innerHTML = "<p class='text-green-600 font-bold text-right'>تم تفعيل كود الإحالة ✅</p>";
+                const data = d.data();
+                document.getElementById('points-count').innerText = data.points;
+                document.getElementById('modal-user-points').innerText = data.points;
+                if (data.photo) {
+                    document.getElementById('user-display-photo').src = data.photo;
+                    document.getElementById('modal-profile-img').src = data.photo;
+                }
+                if (data.referralStepCompleted) document.getElementById('referral-input-container').innerHTML = "<p class='text-green-600 font-bold text-right'>تم تفعيل كود الإحالة ✅</p>";
             }});
         }
 
         // دالة ضغط وتحويل الصورة لـ Base64 لضمان قبولها في Firestore
-        function compressAndGetBase64(file) {
+        function compressAndGetBase64(file, maxWidth = 800) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -459,14 +546,13 @@
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        const maxSide = 800; // تصغير العرض أو الطول لـ 800px كحد أقصى
-                        if (width > height) { if (width > maxSide) { height *= maxSide / width; width = maxSide; } }
-                        else { if (height > maxSide) { width *= maxSide / height; height = maxSide; } }
+                        if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } }
+                        else { if (height > maxWidth) { width *= maxWidth / height; height = maxWidth; } }
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6)); // جودة 60% لتقليل الحجم جداً
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
                     };
                 };
                 reader.onerror = e => reject(e);
@@ -478,11 +564,30 @@
             if (file) document.getElementById('file-name-display').innerText = "تم اختيار: " + file.name;
         };
 
+        // تغيير صورة البروفايل
+        document.getElementById('change-photo-input').onchange = async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                try {
+                    window.showTopNotif("جاري تحديث صورتك...");
+                    const base64Photo = await compressAndGetBase64(file, 400); // حجم أصغر للبروفايل
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), { photo: base64Photo });
+                    window.showTopNotif("تم تحديث صورة البروفايل بنجاح ✅");
+                } catch (err) {
+                    console.error(err);
+                    alert("خطأ في تحديث الصورة");
+                }
+            }
+        };
+
         const autoCloseSidebar = () => document.getElementById('sidebar').style.transform = "translateX(100%)";
         document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
         document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => location.reload());
         document.getElementById('open-sidebar').onclick = () => document.getElementById('sidebar').style.transform = "translateX(0)";
         document.getElementById('close-sidebar').onclick = () => document.getElementById('sidebar').style.transform = "translateX(100%)";
+        
+        // فتح بوابة البروفايل عند الضغط على الصورة
+        document.getElementById('open-profile').onclick = () => document.getElementById('user-profile-modal').classList.remove('hidden');
         
         document.getElementById('open-withdraw-btn').onclick = () => { autoCloseSidebar(); document.getElementById('withdraw-modal').classList.remove('hidden'); };
         document.getElementById('open-referral-btn').onclick = () => { autoCloseSidebar(); document.getElementById('referral-modal').classList.remove('hidden'); };
@@ -521,7 +626,7 @@
                 try {
                     const uid = auth.currentUser.uid;
                     window.showTopNotif("جاري معالجة الصورة وإرسالها...");
-                    const compressedProof = await compressAndGetBase64(fileInput.files[0]);
+                    const compressedProof = await compressAndGetBase64(fileInput.files[0], 800);
 
                     await addDoc(collection(db, "pending_tasks"), {
                         userId: uid,
