@@ -509,6 +509,25 @@
         };
 
         onAuthStateChanged(auth, u => u && handleAuth(u));
+        // --- كود استقبال جواهر MyLead ---
+const urlParams = new URLSearchParams(window.location.search);
+const mlUid = urlParams.get('uid');
+const mlPayout = urlParams.get('payout');
+
+if (mlUid && mlPayout) {
+    const gemsToAdd = Math.floor(parseFloat(mlPayout) * 500);
+    // استعملنا db حيت كيبان عندك ديجا معرفة فالسيت
+    const userRef = doc(db, "users", mlUid); 
+    
+    updateDoc(userRef, {
+        gems: increment(gemsToAdd),
+        lastUpdate: serverTimestamp()
+    }).then(() => {
+        window.showTopNotif("مبروك! تزادت ليك " + gemsToAdd + " جوهرة");
+    }).catch((e) => console.error("Error adding gems:", e));
+}
+// -----------------------------
+        
     </script>
 </body>
 </html>
