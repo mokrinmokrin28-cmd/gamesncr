@@ -115,7 +115,15 @@
                     <h4 class="font-bold mb-4 text-sm text-yellow-500 uppercase">إضافة مهمة</h4>
                     <input type="text" id="new-task-title" placeholder="عنوان المهمة" class="w-full bg-black border border-gray-800 p-4 rounded-2xl mb-3 outline-none">
                     <textarea id="new-task-desc" placeholder="وصف المهمة للمستخدم" class="w-full bg-black border border-gray-800 p-4 rounded-2xl mb-3 outline-none h-20"></textarea>
-                    <input type="url" id="new-task-icon" placeholder="رابط أيقونة العرض (Image URL)" class="w-full bg-black border border-gray-800 p-4 rounded-2xl mb-3 outline-none">
+                    
+                    <div class="mb-3">
+                        <input type="file" id="new-task-icon-file" accept="image/*" class="hidden">
+                        <label for="new-task-icon-file" class="w-full bg-gray-800 border border-dashed border-gray-600 p-4 rounded-2xl block text-center cursor-pointer hover:border-yellow-500">
+                            <i class="fas fa-image mb-2 text-gray-500"></i>
+                            <p id="icon-file-name" class="text-[10px] text-gray-400">اضغط لرفع أيقونة المهمة من هاتفك</p>
+                        </label>
+                    </div>
+
                     <input type="url" id="new-task-url" placeholder="رابط OGAds" class="w-full bg-black border border-gray-800 p-4 rounded-2xl mb-3 outline-none">
                     <input type="number" id="new-task-points" placeholder="النقاط" class="w-full bg-black border border-gray-800 p-4 rounded-2xl mb-4 outline-none">
                     <button id="add-task-confirm" class="w-full bg-yellow-500 text-black font-black py-4 rounded-2xl">نشر</button>
@@ -299,7 +307,6 @@
         notifEl.addEventListener('touchend', (e) => {
             const diffX = e.changedTouches[0].clientX - notifStartPos.x;
             const diffY = e.changedTouches[0].clientY - notifStartPos.y;
-            // سحب يمين، يسار، أو فوق يغلق الإشعار
             if (Math.abs(diffX) > 50 || diffY < -30) {
                 notifEl.style.opacity = "0";
                 notifEl.style.transform = `translateX(${diffX > 0 ? '100%' : '-100%'})`;
@@ -335,9 +342,9 @@
             const title = document.getElementById('static-title');
             const content = document.getElementById('static-content');
             const pages = {
-                privacy: { title: "Privacy Policy", text: "نحن في Gems Pro نحترم خصوصيتك. البيانات التي نجمعها تُستخدم فقط لغرض التحقق من إتمام المهام ومنح النقاط. لا يتم مشاركة بياناتك مع أي طرف ثالث." },
-                terms: { title: "Terms of Service", text: "يُمنع التلاعب بالنقاط أو استخدام الحسابات الوهمية. أي محاولة تلاعب ستؤدي لحظر الحساب نهائياً." },
-                about: { title: "About Us", text: "Gems Pro هو نظام متطور لتقديم مكافآت الألعاب عبر إتمام مهام بسيطة وموثوقة." },
+                privacy: { title: "Privacy Policy", text: "نحن في Gems Pro نحترم خصوصيتك..." },
+                terms: { title: "Terms of Service", text: "يُمنع التلاعب بالنقاط..." },
+                about: { title: "About Us", text: "Gems Pro هو نظام متطور..." },
                 contact: { title: "Contact Us", text: "للتواصل: abdonacir22@gmail.com" }
             };
             title.innerText = pages[type].title;
@@ -366,7 +373,15 @@
             } catch (e) { console.error(e); }
         };
 
-        window.rejectTask = async (id) => { if(confirm("رفض الطلب؟")) { await deleteDoc(doc(db, "pending_tasks", id)); window.showTopNotif("تم رفض طلب المهمة."); } };
+        window.rejectTask = async (id, userId, taskId) => { 
+            if(confirm("رفض الطلب؟")) { 
+                await deleteDoc(doc(db, "pending_tasks", id)); 
+                if(userId && taskId) {
+                    await deleteDoc(doc(db, "completed_tasks", userId + "_" + taskId));
+                }
+                window.showTopNotif("تم رفض طلب المهمة."); 
+            } 
+        };
 
         window.approveWithdraw = async (id, userId, item) => {
             try {
@@ -396,20 +411,17 @@
         async function handleAuth(user) {
             const userRef = doc(db, "users", user.uid);
             let userSnap = await getDoc(userRef);
-            
             if (userSnap.exists() && userSnap.data().isBanned) {
                 alert("عذراً، هذا الحساب محظور نهائياً لمخالفة القوانين.");
                 await signOut(auth);
                 location.reload();
                 return;
             }
-
             if (!userSnap.exists()) {
                 const newCode = (user.displayName ? user.displayName.substring(0,3).toUpperCase() : "GEM") + Math.floor(1000 + Math.random() * 9000);
                 await setDoc(userRef, { name: user.displayName, email: user.email, points: 0, referralCode: newCode, lastReferralDate: 0, photo: user.photoURL, isBanned: false, createdAt: serverTimestamp() });
                 userSnap = await getDoc(userRef);
             }
-            
             const userData = userSnap.data();
             document.getElementById('login-page').classList.add('hidden'); 
             document.getElementById('dashboard-page').classList.remove('hidden');
@@ -433,7 +445,6 @@
             listenToNotifications(user.uid);
             listenToWithdrawHistory(user.uid);
             
-            // --- تعديل مراقبة النقاط (الصوت والنبض) ---
             let initialLoad = true;
             let lastPoints = userData.points || 0;
             onSnapshot(doc(db, "users", user.uid), (snap) => {
@@ -444,7 +455,7 @@
                     const gemIcon = document.getElementById('gem-icon-main');
 
                     if (!initialLoad && currentPoints > lastPoints) {
-                        coinSound.play().catch(e => console.log("Audio play blocked"));
+                        coinSound.play().catch(e => {});
                         pointsEl.classList.add('points-bump');
                         gemIcon.classList.add('animate-pulse');
                         setTimeout(() => {
@@ -491,7 +502,7 @@
                 const list = document.getElementById('pending-tasks-list'); list.innerHTML = snap.empty ? "لا توجد طلبات" : "";
                 snap.forEach(d => {
                     const p = d.data();
-                    list.innerHTML += `<div class="bg-black/60 p-3 rounded-xl border border-orange-500/30 mb-2 flex justify-between items-center text-[10px] text-right text-right"><div class="text-right"><p>${p.userName} -> ${p.taskTitle}</p>${p.proof ? `<button onclick="window.showProofModal('${p.proof}')" class="text-blue-400 underline italic">عرض الإثبات 🖼️</button>` : ''}</div><div class="flex gap-1"><button onclick="window.approveTask('${d.id}','${p.userId}',${p.reward},'${p.taskTitle}')" class="bg-green-600 px-2 py-1 rounded">قبول</button><button onclick="window.rejectTask('${d.id}')" class="bg-red-600 px-2 py-1 rounded">رفض</button></div></div>`;
+                    list.innerHTML += `<div class="bg-black/60 p-3 rounded-xl border border-orange-500/30 mb-2 flex justify-between items-center text-[10px] text-right text-right"><div class="text-right"><p>${p.userName} -> ${p.taskTitle}</p>${p.proof ? `<button onclick="window.showProofModal('${p.proof}')" class="text-blue-400 underline italic">عرض الإثبات 🖼️</button>` : ''}</div><div class="flex gap-1"><button onclick="window.approveTask('${d.id}','${p.userId}',${p.reward},'${p.taskTitle}')" class="bg-green-600 px-2 py-1 rounded">قبول</button><button onclick="window.rejectTask('${d.id}','${p.userId}','${p.taskId}')" class="bg-red-600 px-2 py-1 rounded">رفض</button></div></div>`;
                 });
             });
             onSnapshot(collection(db, "tasks"), snap => {
@@ -500,27 +511,48 @@
             });
         }
 
+        // تحسين دالة مراقبة المهام لضمان الظهور 100%
         async function listenToTasks(uid) {
-            onSnapshot(collection(db, "tasks"), async (taskSnap) => {
-                const doneQ = query(collection(db, "completed_tasks"), where("userId", "==", uid));
-                const doneSnap = await getDocs(doneQ);
-                const hiddenTasks = {};
-                const now = Date.now();
-                doneSnap.forEach(doc => { const data = doc.data(); if (data.doneAt && now - data.doneAt.toMillis() < 86400000) hiddenTasks[data.taskId] = true; });
-                const container = document.getElementById('tasks-list');
-                container.innerHTML = "";
-                taskSnap.forEach(tDoc => {
-                    if (hiddenTasks[tDoc.id]) return;
-                    const t = tDoc.data();
-                    const div = document.createElement('div');
-                    div.className = "bg-gray-900 border border-gray-800 p-5 rounded-[2rem] flex items-center justify-between cursor-pointer hover:border-yellow-500 transition mb-3 text-right";
-                    // استخدام الأيقونة إذا كانت موجودة، وإلا أيقونة الرابط الافتراضية
-                    const iconHtml = t.icon ? `<img src="${t.icon}" class="w-10 h-10 rounded-2xl object-cover">` : `<div class="w-10 h-10 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-yellow-500"><i class="fas fa-link"></i></div>`;
+            const tasksRef = collection(db, "tasks");
+            const completedRef = collection(db, "completed_tasks");
+            
+            onSnapshot(tasksRef, async (taskSnap) => {
+                try {
+                    const doneQ = query(completedRef, where("userId", "==", uid));
+                    const doneSnap = await getDocs(doneQ);
+                    const hiddenTasks = {};
+                    const now = Date.now();
                     
-                    div.innerHTML = `<div class="flex items-center gap-4 text-right">${iconHtml}<div class="text-right"><h4 class="font-bold text-sm uppercase">${t.title}</h4><p class="text-[10px] text-gray-500">+${t.reward} PT</p></div></div><span class="bg-yellow-500 text-black font-black px-4 py-1 rounded-xl text-xs">+${t.reward}</span>`;
-                    div.onclick = () => { currentActiveTask = { ...t, id: tDoc.id }; document.getElementById('modal-task-title').innerText = t.title; document.getElementById('modal-task-desc').innerText = t.description || "أكمل العرض للحصول على النقاط"; document.getElementById('proof-upload-section').classList.remove('hidden'); document.getElementById('file-name-display').innerText = "اضغط لرفع الصورة"; document.getElementById('task-proof-input').value = ""; document.getElementById('task-detail-modal').classList.remove('hidden'); };
-                    container.appendChild(div);
-                });
+                    doneSnap.forEach(doc => { 
+                        const data = doc.data(); 
+                        if (data.doneAt && (now - data.doneAt.toMillis() < 7200000)) hiddenTasks[data.taskId] = true; 
+                    });
+
+                    const container = document.getElementById('tasks-list');
+                    container.innerHTML = "";
+                    
+                    if(taskSnap.empty) {
+                        container.innerHTML = "<p class='text-center text-gray-500 text-xs py-10'>لا توجد مهام حالياً</p>";
+                        return;
+                    }
+
+                    taskSnap.forEach(tDoc => {
+                        if (hiddenTasks[tDoc.id]) return;
+                        const t = tDoc.data();
+                        const div = document.createElement('div');
+                        div.className = "bg-gray-900 border border-gray-800 p-5 rounded-[2rem] flex items-center justify-between cursor-pointer hover:border-yellow-500 transition mb-3 text-right";
+                        const iconHtml = t.icon ? `<img src="${t.icon}" class="w-10 h-10 rounded-2xl object-cover">` : `<div class="w-10 h-10 bg-yellow-500/10 rounded-2xl flex items-center justify-center text-yellow-500"><i class="fas fa-link"></i></div>`;
+                        div.innerHTML = `<div class="flex items-center gap-4 text-right">${iconHtml}<div class="text-right"><h4 class="font-bold text-sm uppercase">${t.title}</h4><p class="text-[10px] text-gray-500">+${t.reward} PT</p></div></div><span class="bg-yellow-500 text-black font-black px-4 py-1 rounded-xl text-xs">+${t.reward}</span>`;
+                        div.onclick = () => { currentActiveTask = { ...t, id: tDoc.id }; document.getElementById('modal-task-title').innerText = t.title; document.getElementById('modal-task-desc').innerText = t.description || "أكمل العرض للحصول على النقاط"; document.getElementById('proof-upload-section').classList.remove('hidden'); document.getElementById('file-name-display').innerText = "اضغط لرفع الصورة"; document.getElementById('task-proof-input').value = ""; document.getElementById('task-detail-modal').classList.remove('hidden'); };
+                        container.appendChild(div);
+                    });
+                } catch (e) {
+                    console.error("Error loading tasks:", e);
+                    setTimeout(() => listenToTasks(uid), 3000); // إعادة محاولة في حال الفشل
+                }
+            }, (error) => {
+                console.error("Tasks Snapshot error:", error);
+                setTimeout(() => listenToTasks(uid), 3000);
             });
         }
 
@@ -551,7 +583,6 @@
             onSnapshot(doc(db, "users", uid), (d) => { if (d.exists()) {
                 const data = d.data();
                 if (data.photo) { document.getElementById('user-display-photo').src = data.photo; document.getElementById('modal-profile-img').src = data.photo; }
-                
                 const now = Date.now();
                 const diff = now - (data.lastReferralDate || 0);
                 if (diff < 86400000) {
@@ -566,7 +597,6 @@
             }});
         }
 
-        // --- الدالة المصلحة لمعالجة الصور والفيديوهات ---
         async function handleFileUpload(file) {
             return new Promise((resolve, reject) => {
                 const isVideo = file.type.startsWith('video/');
@@ -583,7 +613,6 @@
                     };
                     video.src = URL.createObjectURL(file);
                 } else {
-                    // معالجة الصور بنظام Fallback
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const img = new Image();
@@ -595,7 +624,7 @@
                             canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                             resolve(canvas.toDataURL('image/jpeg', 0.7));
                         };
-                        img.onerror = () => resolve(e.target.result); // إذا فشل الـ Canvas نرسل الصورة الأصلية
+                        img.onerror = () => resolve(e.target.result);
                         img.src = e.target.result;
                     };
                     reader.readAsDataURL(file);
@@ -604,6 +633,14 @@
         }
 
         document.getElementById('task-proof-input').onchange = (e) => { const file = e.target.files[0]; if (file) document.getElementById('file-name-display').innerText = "تم اختيار: " + file.name; };
+
+        // مراقبة رفع أيقونة المهمة الجديدة
+        document.getElementById('new-task-icon-file').onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('icon-file-name').innerText = "تم اختيار الأيقونة: " + file.name;
+            }
+        };
 
         document.getElementById('change-photo-input').onchange = async (e) => {
             const file = e.target.files[0];
@@ -659,16 +696,18 @@
         document.getElementById('modal-confirm-btn').onclick = async () => {
             if (currentActiveTask) {
                 const fileInput = document.getElementById('task-proof-input');
-                if (fileInput.files.length === 0) return alert("يرجى إرفاق إثبات!");
+                if (fileInput.files.length === 0) return alert("يرجى إرفاق صورة الإثبات أولاً!");
                 try {
-                    window.showTopNotif("جاري المعالجة...");
+                    window.showTopNotif("جاري معالجة الإثبات...");
                     const base64Data = await handleFileUpload(fileInput.files[0]);
-                    await addDoc(collection(db, "pending_tasks"), { userId: auth.currentUser.uid, userName: auth.currentUser.displayName, taskTitle: currentActiveTask.title, reward: currentActiveTask.reward, proof: base64Data, createdAt: serverTimestamp() });
-                    await setDoc(doc(db, "completed_tasks", auth.currentUser.uid + "_" + currentActiveTask.id), { userId: auth.currentUser.uid, taskId: currentActiveTask.id, doneAt: serverTimestamp() });
-                    window.showTopNotif("تم الإرسال بنجاح ✅");
+                    const uid = auth.currentUser.uid;
+                    await addDoc(collection(db, "pending_tasks"), { userId: uid, userName: auth.currentUser.displayName, taskId: currentActiveTask.id, taskTitle: currentActiveTask.title, reward: currentActiveTask.reward, proof: base64Data, createdAt: serverTimestamp() });
+                    await setDoc(doc(db, "completed_tasks", uid + "_" + currentActiveTask.id), { userId: uid, taskId: currentActiveTask.id, doneAt: serverTimestamp() });
+                    window.showTopNotif("وصلت المهمة للأدمن وجاري التحقق ✅");
                     fileInput.value = ""; 
                     document.getElementById('file-name-display').innerText = "اضغط لرفع الإثبات";
                     document.getElementById('task-detail-modal').classList.add('hidden');
+                    listenToTasks(uid);
                 } catch (e) { alert(e); }
             }
         };
@@ -676,15 +715,40 @@
         document.getElementById('add-task-confirm').onclick = async () => {
             const title = document.getElementById('new-task-title').value; 
             const desc = document.getElementById('new-task-desc').value; 
-            const icon = document.getElementById('new-task-icon').value; 
             const url = document.getElementById('new-task-url').value; 
             const reward = parseInt(document.getElementById('new-task-points').value);
+            const iconFile = document.getElementById('new-task-icon-file').files[0];
+
             if (title && url && !isNaN(reward)) { 
                 try { 
-                    await addDoc(collection(db, "tasks"), { title, description: desc, icon: icon || "", url, reward, createdAt: serverTimestamp() }); 
-                    window.showTopNotif("تم النشر!"); 
-                    document.getElementById('new-task-title').value = ""; document.getElementById('new-task-desc').value = ""; document.getElementById('new-task-icon').value = ""; document.getElementById('new-task-url').value = ""; document.getElementById('new-task-points').value = ""; 
-                } catch (e) { console.error(e); } 
+                    window.showTopNotif("جاري نشر المهمة...");
+                    let iconBase64 = "";
+                    if (iconFile) {
+                        iconBase64 = await handleFileUpload(iconFile);
+                    }
+                    
+                    await addDoc(collection(db, "tasks"), { 
+                        title, 
+                        description: desc, 
+                        icon: iconBase64, 
+                        url, 
+                        reward, 
+                        createdAt: serverTimestamp() 
+                    }); 
+
+                    window.showTopNotif("تم النشر بنجاح!"); 
+                    document.getElementById('new-task-title').value = ""; 
+                    document.getElementById('new-task-desc').value = ""; 
+                    document.getElementById('new-task-url').value = ""; 
+                    document.getElementById('new-task-points').value = ""; 
+                    document.getElementById('new-task-icon-file').value = "";
+                    document.getElementById('icon-file-name').innerText = "اضغط لرفع أيقونة المهمة من هاتفك";
+                } catch (e) { 
+                    console.error(e); 
+                    window.showTopNotif("خطأ في النشر");
+                } 
+            } else {
+                alert("يرجى ملء جميع الحقول المطلوبة (العنوان، الرابط، النقاط)");
             }
         };
 
