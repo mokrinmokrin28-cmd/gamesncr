@@ -22,9 +22,20 @@
         .prize-card:hover { border-color: #eab308; transform: translateY(-5px); }
         .prize-img { width: 100%; height: 80px; object-fit: contain; margin-bottom: 0.5rem; }
         
-        /* الإضافة المطلوبة: أنيميشن شعلة الجواهر */
         .points-bump { animation: pointsBump 0.5s ease-out; color: #fbbf24 !important; text-shadow: 0 0 20px #fbbf24; }
         @keyframes pointsBump { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+
+        /* تطوير أزرار الخروج */
+        .btn-close-custom { 
+            position: absolute; top: 1.5rem; left: 1.5rem; 
+            width: 35px; height: 35px; background: #ef4444; 
+            color: white; border-radius: 50%; display: flex; 
+            align-items: center; justify-content: center; 
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            cursor: pointer; z-index: 10; transition: transform 0.2s;
+            border: none; outline: none;
+        }
+        .btn-close-custom:active { transform: scale(0.9); }
     </style>
 </head>
 <body class="text-white">
@@ -111,7 +122,7 @@
 
     <div id="notifs-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 profile-overlay">
         <div class="bg-gray-900 border border-gray-800 w-full max-sm rounded-[2.5rem] p-6 relative">
-            <button id="close-notifs" class="absolute top-4 left-4 text-gray-500"><i class="fas fa-times text-xl"></i></button>
+            <button onclick="document.getElementById('notifs-modal').classList.add('hidden')" class="btn-close-custom"><i class="fas fa-times"></i></button>
             <h3 class="text-xl font-black mb-4 text-yellow-500 italic text-center underline">Notifications</h3>
             <div id="notifs-content" class="space-y-3 max-h-80 overflow-y-auto text-sm text-right"></div>
         </div>
@@ -139,7 +150,7 @@
 
     <div id="user-profile-modal" class="hidden fixed inset-0 z-[160] flex items-center justify-center p-4 profile-overlay text-center">
         <div class="bg-gray-950 border border-gray-800 w-full max-w-sm rounded-[3rem] p-8 relative shadow-2xl">
-            <button onclick="document.getElementById('user-profile-modal').classList.add('hidden')" class="absolute top-6 left-6 text-gray-500 text-xl"><i class="fas fa-times"></i></button>
+            <button onclick="document.getElementById('user-profile-modal').classList.add('hidden')" class="btn-close-custom"><i class="fas fa-times"></i></button>
             <div class="relative w-28 h-28 mx-auto mb-6">
                 <img id="modal-profile-img" src="" class="w-full h-full rounded-3xl border-4 border-yellow-500 object-cover shadow-2xl">
                 <label for="change-photo-input" class="absolute -bottom-2 -right-2 w-10 h-10 bg-yellow-500 rounded-xl flex items-center justify-center text-black cursor-pointer border-4 border-gray-950 hover:scale-110 transition">
@@ -162,7 +173,7 @@
 
     <div id="static-pages-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-4 profile-overlay text-right">
         <div class="bg-gray-950 border border-gray-800 w-full max-xl rounded-[2.5rem] p-8 relative max-h-[85vh] overflow-y-auto">
-            <button onclick="document.getElementById('static-pages-modal').classList.add('hidden')" class="absolute top-6 left-6 text-gray-500 text-xl"><i class="fas fa-times"></i></button>
+            <button onclick="document.getElementById('static-pages-modal').classList.add('hidden')" class="btn-close-custom"><i class="fas fa-times"></i></button>
             <h2 id="static-title" class="text-2xl font-black text-yellow-500 mb-6 text-right italic underline uppercase"></h2>
             <div id="static-content" class="text-gray-300 leading-relaxed text-right text-sm space-y-4 font-medium"></div>
         </div>
@@ -191,13 +202,13 @@
             </div>
         </div>
         <button id="btn-logout" class="w-full p-4 bg-red-500/10 text-red-500 rounded-2xl font-bold mb-4 mt-10">خروج</button>
-        <button id="close-sidebar" class="absolute top-8 left-8 text-gray-500"><i class="fas fa-times text-xl"></i></button>
+        <button onclick="window.autoCloseSidebar()" class="btn-close-custom"><i class="fas fa-times"></i></button>
     </div>
 
     <div id="referral-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-6 profile-overlay text-center">
         <div class="bg-white border border-gray-200 w-full max-w-sm rounded-[2.5rem] p-8 relative text-gray-900 text-center">
-            <button id="close-referral" class="absolute top-6 left-6 text-gray-400 text-xl"><i class="fas fa-times"></i></button>
-            <p class="font-bold mb-4 text-right">كود الإحالة الخاص بك</p>
+            <button onclick="document.getElementById('referral-modal').classList.add('hidden')" class="btn-close-custom"><i class="fas fa-times"></i></button>
+            <p class="font-bold mb-4 text-right text-gray-900">كود الإحالة الخاص بك</p>
             <div class="bg-gray-200 py-3 rounded-full font-black text-xl mb-4 text-blue-600 font-mono"><span id="my-referral-code-display">...</span></div>
             <button id="copy-ref-btn" class="w-full bg-teal-600 text-white py-3 rounded-full font-bold mb-6">نسخ ومشاركة الكود</button>
             <div id="referral-input-container">
@@ -209,7 +220,7 @@
 
     <div id="withdraw-modal" class="hidden fixed inset-0 z-[120] flex items-center justify-center p-4 profile-overlay text-center">
         <div class="bg-gray-950 border border-gray-800 w-full max-w-lg rounded-[3rem] p-6 relative max-h-[90vh] overflow-y-auto">
-            <button id="close-withdraw" class="absolute top-6 left-6 text-gray-500 text-xl"><i class="fas fa-times"></i></button>
+            <button onclick="document.getElementById('withdraw-modal').classList.add('hidden')" class="btn-close-custom"><i class="fas fa-times"></i></button>
             <h2 class="text-2xl font-black text-yellow-500 mb-8 text-center italic uppercase tracking-tighter">Withdraw Center</h2>
             <div id="prizes-grid" class="grid grid-cols-2 gap-4 text-center">
                 <div class="prize-card">
@@ -250,25 +261,25 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, collection, query, where, getDocs, onSnapshot, orderBy, limit, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        // الإضافة الصحيحة لـ Realtime Database
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDr1YPr8ZL__SPE4IU7JVZZ0WHxV2_8aU4",
             authDomain: "ncr7-d4a74.firebaseapp.com",
             projectId: "ncr7-d4a74",
+            // إضافة رابط الداتابيز هنا
+            databaseURL: "https://ncr7-d4a74-default-rtdb.firebaseio.com", 
             appId: "1:588530322875:web:53f602509b4ff81c99c89e"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const rtdb = getDatabase(app); // تعريف RTDB
+        const rtdb = getDatabase(app);
         const provider = new GoogleAuthProvider();
         const ADMIN_EMAIL = "abdonacir22@gmail.com";
         let currentActiveTask = null;
 
-        // تعريف صوت الجواهر
         const coinSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3');
 
         window.showTopNotif = (text) => {
@@ -299,12 +310,20 @@
             title.innerText = pages[type].title;
             content.innerText = pages[type].text;
             modal.classList.remove('hidden');
-            autoCloseSidebar();
+            window.autoCloseSidebar();
         };
 
         window.modPoints = async (id, val) => await updateDoc(doc(db, "users", id), { points: increment(val) });
         window.deleteTask = async (id) => { if(confirm("حذف المهمة؟")) await deleteDoc(doc(db, "tasks", id)); };
         
+        window.toggleBanUser = async (id, currentStatus) => {
+            const action = currentStatus ? "إلغاء حظر" : "حظر";
+            if(confirm(`هل أنت متأكد من ${action} هذا المستخدم؟`)) {
+                await updateDoc(doc(db, "users", id), { isBanned: !currentStatus });
+                window.showTopNotif(`تم ${action} المستخدم بنجاح.`);
+            }
+        };
+
         window.approveTask = async (reqId, userId, reward, title) => {
             try {
                 await updateDoc(doc(db, "users", userId), { points: increment(reward) });
@@ -344,11 +363,20 @@
         async function handleAuth(user) {
             const userRef = doc(db, "users", user.uid);
             let userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists() && userSnap.data().isBanned) {
+                alert("عذراً، هذا الحساب محظور نهائياً لمخالفة القوانين.");
+                await signOut(auth);
+                location.reload();
+                return;
+            }
+
             if (!userSnap.exists()) {
                 const newCode = (user.displayName ? user.displayName.substring(0,3).toUpperCase() : "GEM") + Math.floor(1000 + Math.random() * 9000);
-                await setDoc(userRef, { name: user.displayName, email: user.email, points: 0, referralCode: newCode, referralStepCompleted: false, photo: user.photoURL, createdAt: serverTimestamp() });
+                await setDoc(userRef, { name: user.displayName, email: user.email, points: 0, referralCode: newCode, lastReferralDate: 0, photo: user.photoURL, isBanned: false, createdAt: serverTimestamp() });
                 userSnap = await getDoc(userRef);
             }
+            
             const userData = userSnap.data();
             document.getElementById('login-page').classList.add('hidden'); 
             document.getElementById('dashboard-page').classList.remove('hidden');
@@ -359,21 +387,27 @@
             document.getElementById('modal-user-email').innerText = userData.email || user.email;
             document.getElementById('my-referral-code-display').innerText = userData.referralCode;
             if (user.email === ADMIN_EMAIL) { document.getElementById('admin-panel').classList.remove('hidden'); document.getElementById('admin-notif-bar').classList.remove('hidden'); initAdmin(); }
+            
+            onSnapshot(userRef, (snap) => {
+                if (snap.exists() && snap.data().isBanned) {
+                    alert("لقد تم حظر حسابك الآن.");
+                    signOut(auth).then(() => location.reload());
+                }
+            });
+
             listenToUserData(user.uid);
             listenToTasks(user.uid);
             listenToNotifications(user.uid);
             listenToWithdrawHistory(user.uid);
             
-            // إضافة مراقبة الجواهر من Realtime Database مع الأنيميشن والصوت
+            // إضافة مراقب Realtime Database للجواهر
             const rtdbRef = ref(rtdb, 'users/' + user.uid + '/gems');
             let initialLoad = true;
             onValue(rtdbRef, (snap) => {
                 const gems = snap.val() || 0;
                 const pointsEl = document.getElementById('points-count');
                 const modalPointsEl = document.getElementById('modal-user-points');
-                
                 if (pointsEl) {
-                    // تأثير الصوت والأنيميشن فقط عند الزيادة (وليس عند أول دخول)
                     if (!initialLoad && parseInt(pointsEl.innerText) < gems) {
                         coinSound.play().catch(e => console.log("Sound error"));
                         pointsEl.classList.add('points-bump');
@@ -392,7 +426,18 @@
                 const list = document.getElementById('admin-user-list'); list.innerHTML = "";
                 snap.forEach(uDoc => {
                     const u = uDoc.data();
-                    list.innerHTML += `<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-gray-800 text-[11px] mb-2 text-right"><div class="text-right"><p>${u.name}</p><p class="text-yellow-500">${u.points} PT</p></div><div class="flex gap-1"><button onclick="window.modPoints('${uDoc.id}', 10)" class="bg-green-600 w-7 h-7 rounded">+</button><button onclick="window.modPoints('${uDoc.id}', -10)" class="bg-red-600 w-7 h-7 rounded">-</button></div></div>`;
+                    list.innerHTML += `<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-gray-800 text-[11px] mb-2 text-right">
+                        <div class="text-right">
+                            <p class="${u.isBanned ? 'text-red-500 line-through' : ''}">${u.name}</p>
+                            <p class="text-yellow-500">${u.points} PT</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <button onclick="window.modPoints('${uDoc.id}', 10)" class="bg-green-600 w-7 h-7 rounded">+</button>
+                            <button onclick="window.modPoints('${uDoc.id}', -10)" class="bg-red-600 w-7 h-7 rounded">-</button>
+                            <button onclick="window.toggleBanUser('${uDoc.id}', ${u.isBanned || false})" class="${u.isBanned ? 'bg-blue-600' : 'bg-red-800'} px-2 rounded text-[9px] font-bold">
+                                ${u.isBanned ? 'فك الحظر' : 'حظر'}
+                            </button>
+                        </div></div>`;
                 });
             });
             onSnapshot(query(collection(db, "pending_withdraws"), orderBy("createdAt", "desc")), snap => {
@@ -411,7 +456,7 @@
             });
             onSnapshot(collection(db, "tasks"), snap => {
                 const box = document.getElementById('admin-manage-tasks'); box.innerHTML = "";
-                snap.forEach(tDoc => { box.innerHTML += `<div class="flex justify-between p-1 text-right"><span>${tDoc.data().title}</span><button onclick="window.deleteTask('${tDoc.id}')" class="text-red-500 text-xs italic underline">حذف</button></div>`; });
+                snap.forEach(tDoc => { box.innerHTML += `<div class="flex justify-between p-1 text-right text-right"><span>${tDoc.data().title}</span><button onclick="window.deleteTask('${tDoc.id}')" class="text-red-500 text-xs italic underline">حذف</button></div>`; });
             });
         }
 
@@ -441,7 +486,7 @@
             onSnapshot(q, (snap) => {
                 const container = document.getElementById('user-withdraw-history');
                 container.innerHTML = snap.empty ? "<p class='text-gray-600 text-[10px] text-center'>لا توجد سحوبات بعد</p>" : "";
-                snap.forEach(doc => { const d = doc.data(); const statusClass = d.status === 'pending' ? 'text-orange-500 italic' : 'text-green-500 font-bold'; const statusText = d.status === 'pending' ? 'قيد الانتظار' : 'تمت المطالبة بنجاح ✅'; container.innerHTML += `<div class="bg-gray-900/50 p-3 rounded-xl border border-gray-800 text-right mb-2"><div class="flex justify-between items-center mb-1"><span class="text-white text-[11px] font-bold">${d.item}</span><span class="text-yellow-500 text-[10px]">${d.price} PT</span></div><p class="${statusClass} text-[9px] tracking-tighter text-right">${statusText}</p></div>`; });
+                snap.forEach(doc => { const d = doc.data(); const statusClass = d.status === 'pending' ? 'text-orange-500 italic' : 'text-green-500 font-bold'; const statusText = d.status === 'pending' ? 'قيد الانتظار' : 'تمت المطالبة بنجاح ✅'; container.innerHTML += `<div class="bg-gray-900/50 p-3 rounded-xl border border-gray-800 text-right mb-2 text-right"><div class="flex justify-between items-center mb-1 text-right"><span class="text-white text-[11px] font-bold text-right">${d.item}</span><span class="text-yellow-500 text-[10px]">${d.price} PT</span></div><p class="${statusClass} text-[9px] tracking-tighter text-right">${statusText}</p></div>`; });
             });
         }
 
@@ -455,7 +500,7 @@
                     if (Date.now() - latestNotif.createdAt.toMillis() < 10000) window.showTopNotif(latestNotif.text);
                 }
                 const fullQ = query(collection(db, "notifications"), where("userId", "==", uid), orderBy("createdAt", "desc"));
-                getDocs(fullQ).then(s => { const content = document.getElementById('notifs-content'); content.innerHTML = s.empty ? "لا توجد إشعارات حالياً" : ""; s.forEach(d => { content.innerHTML += `<div class="bg-gray-800 p-4 rounded-2xl border-r-4 border-yellow-500 mb-2 text-right">${d.data().text}</div>`; }); });
+                getDocs(fullQ).then(s => { const content = document.getElementById('notifs-content'); content.innerHTML = s.empty ? "لا توجد إشعارات حالياً" : ""; s.forEach(d => { content.innerHTML += `<div class="bg-gray-800 p-4 rounded-2xl border-r-4 border-yellow-500 mb-2 text-right text-right">${d.data().text}</div>`; }); });
             });
         }
 
@@ -465,7 +510,18 @@
                 document.getElementById('points-count').innerText = data.points;
                 document.getElementById('modal-user-points').innerText = data.points;
                 if (data.photo) { document.getElementById('user-display-photo').src = data.photo; document.getElementById('modal-profile-img').src = data.photo; }
-                if (data.referralStepCompleted) document.getElementById('referral-input-container').innerHTML = "<p class='text-green-600 font-bold text-right'>تم تفعيل كود الإحالة ✅</p>";
+                
+                const now = Date.now();
+                const diff = now - (data.lastReferralDate || 0);
+                if (diff < 86400000) {
+                    document.getElementById('referral-input-container').innerHTML = `<p class='text-orange-500 font-bold text-xs text-right'>لقد استخدمت كود إحالة اليوم. عد غداً ✅</p>`;
+                } else {
+                    document.getElementById('referral-input-container').innerHTML = `
+                        <input type="text" id="ref-input-field" placeholder="أدخل كود صديقك" class="w-full bg-gray-200 rounded-full py-3 px-6 text-center font-bold mb-4 outline-none uppercase font-mono">
+                        <button id="confirm-ref-btn-new" class="w-full bg-teal-600 text-white py-3 rounded-full font-bold">تأكيد</button>`;
+                    const btn = document.getElementById('confirm-ref-btn-new');
+                    if(btn) btn.onclick = window.handleReferralAction;
+                }
             }});
         }
 
@@ -498,25 +554,36 @@
             }
         };
 
-        const autoCloseSidebar = () => document.getElementById('sidebar').style.transform = "translateX(100%)";
+        window.autoCloseSidebar = () => document.getElementById('sidebar').style.transform = "translateX(100%)";
         document.getElementById('btn-login').onclick = () => signInWithPopup(auth, provider);
         document.getElementById('btn-logout').onclick = () => signOut(auth).then(() => location.reload());
         document.getElementById('open-sidebar').onclick = () => document.getElementById('sidebar').style.transform = "translateX(0)";
-        document.getElementById('close-sidebar').onclick = () => document.getElementById('sidebar').style.transform = "translateX(100%)";
         document.getElementById('open-profile').onclick = () => document.getElementById('user-profile-modal').classList.remove('hidden');
-        document.getElementById('open-withdraw-btn').onclick = () => { autoCloseSidebar(); document.getElementById('withdraw-modal').classList.remove('hidden'); };
-        document.getElementById('open-referral-btn').onclick = () => { autoCloseSidebar(); document.getElementById('referral-modal').classList.remove('hidden'); };
+        document.getElementById('open-withdraw-btn').onclick = () => { window.autoCloseSidebar(); document.getElementById('withdraw-modal').classList.remove('hidden'); };
+        document.getElementById('open-referral-btn').onclick = () => { window.autoCloseSidebar(); document.getElementById('referral-modal').classList.remove('hidden'); };
         document.getElementById('open-notifs').onclick = () => { document.getElementById('notifs-modal').classList.remove('hidden'); document.getElementById('notif-dot').classList.add('hidden'); };
-        document.getElementById('close-notifs').onclick = () => document.getElementById('notifs-modal').classList.add('hidden');
         document.getElementById('copy-ref-btn').onclick = () => { navigator.clipboard.writeText(document.getElementById('my-referral-code-display').innerText); window.showTopNotif("تم نسخ الكود!"); };
 
-        document.getElementById('confirm-ref-btn').onclick = async () => {
-            const code = document.getElementById('ref-input-field').value.trim().toUpperCase();
-            const myId = auth.currentUser.uid; const myRef = doc(db, "users", myId); const mySnap = await getDoc(myRef);
-            if (code === mySnap.data().referralCode || mySnap.data().referralStepCompleted) return alert("خطأ");
+        window.handleReferralAction = async () => {
+            const inputField = document.getElementById('ref-input-field');
+            if(!inputField) return;
+            const code = inputField.value.trim().toUpperCase();
+            const myId = auth.currentUser.uid;
+            const myRef = doc(db, "users", myId);
+            const mySnap = await getDoc(myRef);
+            const myData = mySnap.data();
+            if (code === myData.referralCode) return alert("لا يمكنك استخدام كودك الشخصي!");
             const q = query(collection(db, "users"), where("referralCode", "==", code));
             const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) { await updateDoc(doc(db, "users", querySnapshot.docs[0].id), { points: increment(50) }); await updateDoc(myRef, { points: increment(25), referralStepCompleted: true }); window.showTopNotif("مبروك! حصلت على 25 نقطة إضافية."); location.reload(); }
+            if (!querySnapshot.empty) {
+                const friendDoc = querySnapshot.docs[0];
+                await updateDoc(doc(db, "users", friendDoc.id), { points: increment(50) });
+                await updateDoc(myRef, { points: increment(25), lastReferralDate: Date.now() });
+                window.showTopNotif("مبروك! حصلت على مكافأة الإحالة اليومية.");
+                location.reload();
+            } else {
+                alert("كود غير صحيح!");
+            }
         };
 
         document.getElementById('modal-start-btn').onclick = () => { if (currentActiveTask && currentActiveTask.url) window.open(currentActiveTask.url, '_blank'); };
@@ -538,6 +605,21 @@
             const title = document.getElementById('new-task-title').value; const desc = document.getElementById('new-task-desc').value; const url = document.getElementById('new-task-url').value; const reward = parseInt(document.getElementById('new-task-points').value);
             if (title && url && !isNaN(reward)) { try { await addDoc(collection(db, "tasks"), { title, description: desc, url, reward, createdAt: serverTimestamp() }); window.showTopNotif("تم النشر!"); document.getElementById('new-task-title').value = ""; document.getElementById('new-task-desc').value = ""; document.getElementById('new-task-url').value = ""; document.getElementById('new-task-points').value = ""; } catch (e) { console.error(e); } }
         };
+
+        window.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const openBtn = document.getElementById('open-sidebar');
+            if (sidebar && sidebar.style.transform === "translateX(0px)" && !sidebar.contains(e.target) && openBtn && !openBtn.contains(e.target)) { window.autoCloseSidebar(); }
+            if (e.target.classList.contains('profile-overlay')) { e.target.classList.add('hidden'); }
+        });
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const sidebarEl = document.getElementById('sidebar');
+        if(sidebarEl) {
+            sidebarEl.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+            sidebarEl.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; if (touchEndX > touchStartX + 50) { window.autoCloseSidebar(); } }, {passive: true});
+        }
 
         onAuthStateChanged(auth, u => u && handleAuth(u));
     </script>
